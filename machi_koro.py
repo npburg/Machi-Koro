@@ -4,81 +4,25 @@ MAX_PLAYER_COUNT = 4
 random.seed( 0 )
 
 class CardType:
-    null                = 0
-    landmark            = 1
-    primary_industry    = 2
-    secondary_industry  = 3
-    restaurant          = 4
-    major_establishment = 5
-    
-    @staticmethod
-    def getString( card_type ):
-        if card_type == CardType.null:
-            return "<null>"
-        elif card_type == CardType.landmark:
-            return "Landmark"
-        elif card_type == CardType.primary_industry:
-            return "Primary Industry"
-        elif card_type == CardType.secondary_industry:
-            return "Secondary Industry"
-        elif card_type == CardType.restaurant:
-            return "Restaurant"
-        elif card_type == CardType.major_establishment:
-            return "Major Establishment"
-        return ""
+    null                = "<null>"
+    landmark            = "Landmark"
+    primary_industry    = "Primary Industry"
+    secondary_industry  = "Secondary Industry"
+    restaurant          = "Restaurant"
+    major_establishment = "Major Establishment"
     
 class CardSymbol:
-    null     = 0
-    wheat    = 1
-    cow      = 2
-    bread    = 3
-    cup      = 4
-    gear     = 5
-    landmark = 6
-    factory  = 7
-    apple    = 8
-    
-    @staticmethod
-    def getString( card_symbol ):
-        if card_symbol == CardSymbol.null:
-            return "<null>"
-        elif card_symbol == CardSymbol.wheat:
-            return "Wheat"
-        elif card_symbol == CardSymbol.cow:
-            return "Cow"
-        elif card_symbol == CardSymbol.bread:
-            return "Bread"
-        elif card_symbol == CardSymbol.cup:
-            return "Cup"
-        elif card_symbol == CardSymbol.gear:
-            return "Gear"
-        elif card_symbol == CardSymbol.landmark:
-            return "Landmark"
-        elif card_symbol == CardSymbol.factory:
-            return "Factory"
-        elif card_symbol == CardSymbol.apple:
-            return "Apple"
-        return ""
-        
-sWheatField = "Wheat Field"
-sRanch = "Ranch"
-sBakery = "Bakery"
-sCafe = "Cafe"
-sConvenienceStore = "Convenience Store"
-sForest = "Forest"
-sStadium = "Stadium"
-sTVStation = "TV Station"
-sBusinessCenter = "Business Center"
-sCheeseFactory = "Cheese Factory"
-sFurnitureFactory = "Furniture Factory"
-sMine = "Mine"
-sFamilyRestaurant = "Family Restaurant"
-sAppleOrchard = "Apple Orchard"
-sFruitAndVegetableMarket = "Fruit And Vegetable Market"
-sTrainStation = "Train Station"
-sShoppingMall = "Shopping Mall"
-sAmusementPark = "Amusement Park"
-sRadioTower = "Radio Tower"
+    null     = "<null>"
+    wheat    = "Wheat"
+    cow      = "Cow"
+    bread    = "Bread"
+    cup      = "Cup"
+    gear     = "Gear"
+    landmark = "Landmark"
+    factory  = "Factory"
+    apple    = "Apple"
+
+
     
 def d6_odds( dice, number ):
     dice_sides = 6
@@ -128,24 +72,15 @@ def d6_odds_unit_test():
     print ""
 
 class Card:
-#    name = ""
-#    card_type = CardType.null
-#    card_symbol = CardSymbol.null
-#    multiplyer_symbol = CardSymbol.null
-#    cost = 0
-#    basepay = 0
-#    minrange = 0
-#    maxrange = 0
-    
-    def __init__( self, n, t, s, c, p, ms, m, x ):
-        self.name = n
-        self.card_type = t
-        self.card_symbol = s
-        self.cost = c
-        self.basepay = p
-        self.multiplyer_symbol = ms
-        self.minrange = m
-        self.maxrange = x
+    def __init__( self, name, type, symbol, cost, basepay, multiplier_symbol, minrange, maxrange ):
+        self.name = name
+        self.type = type
+        self.symbol = symbol
+        self.cost = cost
+        self.basepay = basepay
+        self.multiplier_symbol = multiplier_symbol
+        self.minrange = minrange
+        self.maxrange = maxrange
 
     def odds( self, dice ):
         odds = 0
@@ -159,73 +94,73 @@ class Card:
 
     def income( self, tableau, dice, players ):
         odds = self.odds( dice )
-        multiplyer = 0
+        multiplier = 0
         payout = self.payout( tableau )
-        second_turn_multiplyer = 1
+        second_turn_multiplier = 1
 
-        if self.card_type is CardType.primary_industry:
-            multiplyer = players
-        elif self.card_type is CardType.secondary_industry:
-            multiplyer = 1
-        elif self.card_type is CardType.restaurant:
-            multiplyer = players - 1
-        elif self.card_type is CardType.major_establishment:
+        if self.type is CardType.primary_industry:
+            multiplier = players
+        elif self.type is CardType.secondary_industry:
+            multiplier = 1
+        elif self.type is CardType.restaurant:
+            multiplier = players - 1
+        elif self.type is CardType.major_establishment:
             # assume max payout
-            if self.name is sStadium:
-                multiplyer = players - 1
-            elif self.name is sTVStation:
-                multiplyer = 1
+            if self is Cards.stadium:
+                multiplier = players - 1
+            elif self is Cards.tvStation:
+                multiplier = 1
         
         if( tableau.has( Cards.amusementPark ) and tableau.has( Cards.trainStation ) and dice is 2 ):
-            second_turn_multiplyer = 7.0 / 6.0
+            second_turn_multiplier = 7.0 / 6.0
             
-        return odds * multiplyer * payout * second_turn_multiplyer
+        return odds * multiplier * payout * second_turn_multiplier
             
     def payout( self, tableau ):
         pay = self.basepay
         if tableau.has( Cards.shoppingMall ) and ( self.isCardSymbol( CardSymbol.bread ) or self.isCardSymbol( CardSymbol.cup ) ):
             pay = pay + 1
             
-        if self.multiplyer_symbol is not CardSymbol.null:
-            pay = pay * tableau.countSymbols( self.multiplyer_symbol )
+        if self.multiplier_symbol is not CardSymbol.null:
+            pay = pay * tableau.countSymbols( self.multiplier_symbol )
 
         return pay
         
     def isCardName( self, name ):
         return self.name in name
         
-    def isCardSymbol( self, card_symbol ):
-        return self.card_symbol == card_symbol
+    def isCardSymbol( self, symbol ):
+        return self.symbol == symbol
         
     def typeString( self ):
-        return CardType.getString( self.card_type )
+        return CardType.getString( self.type )
         
     def symbolString( self ):
-        return CardSymbol.getString( self.card_symbol )
+        return CardSymbol.getString( self.symbol )
         
     def inRange( self, roll ):
         return roll is min( max( roll, self.minrange ), self.maxrange )            
 
 class Cards():
-    wheatField              = Card( sWheatField,                CardType.primary_industry,      CardSymbol.wheat,    1,  1, CardSymbol.null,   1,  1 )
-    ranch                   = Card( sRanch,                     CardType.primary_industry,      CardSymbol.cow,      1,  1, CardSymbol.null,   2,  2 )
-    bakery                  = Card( sBakery,                    CardType.secondary_industry,    CardSymbol.bread,    1,  1, CardSymbol.null,   2,  3 )
-    cafe                    = Card( sCafe,                      CardType.restaurant,            CardSymbol.cup,      2,  1, CardSymbol.null,   3,  3 )
-    convenienceStore        = Card( sConvenienceStore,          CardType.secondary_industry,    CardSymbol.bread,    2,  3, CardSymbol.null,   4,  4 )
-    forest                  = Card( sForest,                    CardType.primary_industry,      CardSymbol.gear,     3,  1, CardSymbol.null,   5,  5 )
-    stadium                 = Card( sStadium,                   CardType.major_establishment,   CardSymbol.landmark, 6,  2, CardSymbol.null,   6,  6 )
-    tvStation               = Card( sTVStation,                 CardType.major_establishment,   CardSymbol.landmark, 7,  5, CardSymbol.null,   6,  6 )
-    businessCenter          = Card( sBusinessCenter,            CardType.major_establishment,   CardSymbol.landmark, 8,  0, CardSymbol.null,   6,  6 )
-    cheeseFactory           = Card( sCheeseFactory,             CardType.secondary_industry,    CardSymbol.factory,  5,  3, CardSymbol.cow,    7,  7 )
-    furnitureFactory        = Card( sFurnitureFactory,          CardType.secondary_industry,    CardSymbol.factory,  3,  3, CardSymbol.gear,   8,  8 )
-    mine                    = Card( sMine,                      CardType.primary_industry,      CardSymbol.gear,     6,  5, CardSymbol.null,   9,  9 )
-    familyRestaurant        = Card( sFamilyRestaurant,          CardType.restaurant,            CardSymbol.cup,      3,  2, CardSymbol.null,   9, 10 )
-    appleOrchard            = Card( sAppleOrchard,              CardType.primary_industry,      CardSymbol.wheat,    3,  3, CardSymbol.null,  10, 10 )
-    fruitAndVegetableMarket = Card( sFruitAndVegetableMarket,   CardType.secondary_industry,    CardSymbol.apple,    2,  2, CardSymbol.wheat, 11, 12 )
-    trainStation            = Card( sTrainStation,              CardType.landmark,              CardSymbol.landmark, 4,  0, CardSymbol.null,   0,  0 )
-    shoppingMall            = Card( sShoppingMall,              CardType.landmark,              CardSymbol.landmark, 10, 0, CardSymbol.null,   0,  0 )
-    amusementPark           = Card( sAmusementPark,             CardType.landmark,              CardSymbol.landmark, 16, 0, CardSymbol.null,   0,  0 )
-    radioTower              = Card( sRadioTower,                CardType.landmark,              CardSymbol.landmark, 22, 0, CardSymbol.null,   0,  0 )
+    wheatField              = Card( "Wheat Field",                CardType.primary_industry,      CardSymbol.wheat,    1,  1, CardSymbol.null,   1,  1 )
+    ranch                   = Card( "Ranch",                      CardType.primary_industry,      CardSymbol.cow,      1,  1, CardSymbol.null,   2,  2 )
+    bakery                  = Card( "Bakery",                     CardType.secondary_industry,    CardSymbol.bread,    1,  1, CardSymbol.null,   2,  3 )
+    cafe                    = Card( "Cafe",                       CardType.restaurant,            CardSymbol.cup,      2,  1, CardSymbol.null,   3,  3 )
+    convenienceStore        = Card( "Convenience Store",          CardType.secondary_industry,    CardSymbol.bread,    2,  3, CardSymbol.null,   4,  4 )
+    forest                  = Card( "Forest",                     CardType.primary_industry,      CardSymbol.gear,     3,  1, CardSymbol.null,   5,  5 )
+    stadium                 = Card( "Stadium",                    CardType.major_establishment,   CardSymbol.landmark, 6,  2, CardSymbol.null,   6,  6 )
+    tvStation               = Card( "TV Station",                 CardType.major_establishment,   CardSymbol.landmark, 7,  5, CardSymbol.null,   6,  6 )
+    businessCenter          = Card( "Business Center",            CardType.major_establishment,   CardSymbol.landmark, 8,  0, CardSymbol.null,   6,  6 )
+    cheeseFactory           = Card( "Cheese Factory",             CardType.secondary_industry,    CardSymbol.factory,  5,  3, CardSymbol.cow,    7,  7 )
+    furnitureFactory        = Card( "Furniture Factory",          CardType.secondary_industry,    CardSymbol.factory,  3,  3, CardSymbol.gear,   8,  8 )
+    mine                    = Card( "Mine",                       CardType.primary_industry,      CardSymbol.gear,     6,  5, CardSymbol.null,   9,  9 )
+    familyRestaurant        = Card( "Family Restaurant",          CardType.restaurant,            CardSymbol.cup,      3,  2, CardSymbol.null,   9, 10 )
+    appleOrchard            = Card( "Apple Orchard",              CardType.primary_industry,      CardSymbol.wheat,    3,  3, CardSymbol.null,  10, 10 )
+    fruitAndVegetableMarket = Card( "Fruit And Vegetable Market", CardType.secondary_industry,    CardSymbol.apple,    2,  2, CardSymbol.wheat, 11, 12 )
+    trainStation            = Card( "Train Station",              CardType.landmark,              CardSymbol.landmark, 4,  0, CardSymbol.null,   0,  0 )
+    shoppingMall            = Card( "Shopping Mall",              CardType.landmark,              CardSymbol.landmark, 10, 0, CardSymbol.null,   0,  0 )
+    amusementPark           = Card( "Amusement Park",             CardType.landmark,              CardSymbol.landmark, 16, 0, CardSymbol.null,   0,  0 )
+    radioTower              = Card( "Radio Tower",                CardType.landmark,              CardSymbol.landmark, 22, 0, CardSymbol.null,   0,  0 )
     
     @staticmethod
     def list():
@@ -280,7 +215,7 @@ class Cards():
     def blueCardList():
         list = []
         for card in Cards.list():
-            if card.card_type is CardType.primary_industry:
+            if card.type is CardType.primary_industry:
                 list.append( card )
         return list
        
@@ -288,7 +223,7 @@ class Cards():
     def nonLandmarkList():
         list = []
         for card in Cards.list():
-            if card.card_type is not CardType.landmark:
+            if card.type is not CardType.landmark:
                 list.append( card )
         return list
 
@@ -298,8 +233,8 @@ class CardUnitTest:
 
     def printState( self, card ):
         print "Name: " + card.name
-        print "Type: " + card.typeString()
-        print "Symbol: " + card.symbolString()
+        print "Type: " + card.type
+        print "Symbol: " + card.symbol
         print "Cost: " + str( card.cost )
         print "Base Pay: " + str( card.basepay ) 
         print "Min Range: " + str( card.minrange )
@@ -387,21 +322,21 @@ class Tableau:
     def resolveRedCards( self, roll ):
         income = 0
         for card in self.cards:
-            if card.card_type is CardType.restaurant and card.inRange( roll ):
+            if card.type is CardType.restaurant and card.inRange( roll ):
                 income = income + ( self.cards[ card ] * card.payout( self ) )
         return income
         
     def resolveBlueCards( self, roll ):
         income = 0
         for card in self.cards:
-            if card.card_type is CardType.primary_industry and card.inRange( roll ):
+            if card.type is CardType.primary_industry and card.inRange( roll ):
                 income = income + ( self.cards[ card ] * card.payout( self ) )
         return income
         
     def resolveGreenCards( self, roll ):
         income = 0
         for card in self.cards:
-            if card.card_type is CardType.secondary_industry and card.inRange( roll ):
+            if card.type is CardType.secondary_industry and card.inRange( roll ):
                 income = income + ( self.cards[ card ] * card.payout( self ) )
         return income        
         
@@ -409,7 +344,7 @@ class Tableau:
     def resolvePurpleCards( self, roll ):
         income = 0
         for card in self.cards:
-            if card.card_type is CardType.major_establishment and card.inRange( roll ):
+            if card.type is CardType.major_establishment and card.inRange( roll ):
                 print "Purple Cards not resolved."
                 #income = income + ( self.cards[ card ] * card.payout( self ) )
         return income
@@ -419,10 +354,10 @@ class Tableau:
             return self.cards[ card ]
         return 0
 
-    def countSymbols( self, card_symbol ):
+    def countSymbols( self, symbol ):
         count = 0
         for card in self.cards:
-            if card.card_symbol is card_symbol:
+            if card.symbol is symbol:
                 count = count + self.cards[ card ]    
         return count
 
@@ -461,7 +396,7 @@ class Tableau:
     def score( self ):
         score = self.money
         for card in self.cards:
-            if card.card_type is CardType.landmark:
+            if card.type is CardType.landmark:
                 score = score + card.cost
         return score
         
@@ -620,7 +555,7 @@ class PlayerAI_OneDieSpectrum( PlayerAIInterface ):
         for card in Cards.oneDieList():
             cardCount = self.engine.getCardCount( self, card )
             # exclude major establishments
-            if cardCount < minCountCard and self.engine.canBuy( self, card ) and card.card_type is not CardType.major_establishment:
+            if cardCount < minCountCard and self.engine.canBuy( self, card ) and card.type is not CardType.major_establishment:
                 minCountCard = cardCount
                 minCard = card
         return minCard        
@@ -720,7 +655,7 @@ class PlayerAI_Random( PlayerAIInterface ):
         while( self.engine.getMoney( self ) > 0 and i < 100):
             i = i + 1
             card = nonLandmarkList[ random.randrange( 0, len( nonLandmarkList ) ) ]
-            if self.engine.canBuy( self, card ) and card.card_type is not CardType.major_establishment:
+            if self.engine.canBuy( self, card ) and card.type is not CardType.major_establishment:
                 return card
                 
         return
@@ -815,7 +750,7 @@ class Engine:
         
     def canBuy( self, player, card ):
         tableau = self.tableau[ player ]
-        if card.card_symbol is CardSymbol.landmark and tableau.cardCount( card ) > 0:
+        if card.symbol is CardSymbol.landmark and tableau.cardCount( card ) > 0:
             return False
         
         if card.cost <= tableau.money and self.supply.has( card ):
@@ -870,8 +805,8 @@ class Engine:
 print "Hello Machi Koro!\n"
 
 #d6_odds_unit_test()
-#test = CardUnitTest()
-#test.run()
+test = CardUnitTest()
+test.run()
 #test = SupplyUnitTest()
 #test.run()
 #test = TableauUnitTest()
@@ -890,7 +825,7 @@ print "Hello Machi Koro!\n"
 #PlayerAI_FruitAndVegetableMarket
 
 i = 0
-MAX_RUNS = 10000
+MAX_RUNS = 0
 TICKS_FRACTIONS = 20
 wins = dict()
 #playerAIs = [ PlayerAI_Random( "Player1" ), PlayerAI_Random( "Player2" ), PlayerAI_Random( "Player3" ), PlayerAI_Random( "Player4" ) ]
